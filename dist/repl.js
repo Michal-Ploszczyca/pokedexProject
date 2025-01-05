@@ -1,4 +1,5 @@
 import { createInterface } from "node:readline";
+import { getCommands } from "./registryOfCommands.js";
 export function startREPL() {
     const rl = createInterface({
         input: process.stdin,
@@ -7,6 +8,7 @@ export function startREPL() {
     });
     // Start the REPL prompt
     rl.prompt();
+    const commands = getCommands();
     // Listen for user input
     rl.on('line', async (input) => {
         // Parse the input into an array of words
@@ -16,8 +18,18 @@ export function startREPL() {
             rl.prompt();
             return;
         }
-        const commandName = words[0];
-        console.log(`Your command was: ${commandName}`);
+        const command = commands[input.trim()];
+        if (command) {
+            try {
+                command.callback(commands);
+            }
+            catch (error) {
+                console.error("An error occured:", error);
+            }
+        }
+        else {
+            console.log("Unknown command");
+        }
         // Show the prompt again for the next input
         rl.prompt();
     });

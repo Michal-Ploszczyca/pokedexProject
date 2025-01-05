@@ -1,7 +1,9 @@
 import { rawListeners } from "process";
-
+import { error } from "console";
 import { createInterface }  from "node:readline"
 import { stdin, stdout }  from "node:process";
+import { getCommands } from "./registryOfCommands.js";
+
 
 
 export function startREPL() {
@@ -14,6 +16,10 @@ export function startREPL() {
 // Start the REPL prompt
 rl.prompt();
 
+
+const commands = getCommands();
+
+
 // Listen for user input
 rl.on('line', async (input)=> {
     // Parse the input into an array of words
@@ -25,8 +31,18 @@ rl.on('line', async (input)=> {
         return;
     }
 
-    const commandName = words[0]
-    console.log(`Your command was: ${commandName}`);
+    const command = commands[input.trim()];
+
+    if (command) {
+        try {
+            command.callback(commands);
+        } catch (error) {
+            console.error("An error occured:", error)
+        }
+    } else {
+        console.log("Unknown command");
+    }
+    
     // Show the prompt again for the next input
     rl.prompt();
 });
@@ -37,6 +53,8 @@ rl.on('close', () => {
     process.exit(0);
 });
 }
+
+
 
 export function cleanInput(input: string): string[] {
     return input
